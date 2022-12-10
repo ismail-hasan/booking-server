@@ -41,27 +41,21 @@ async function run() {
     // post
     app.post('/booking', async (req, res) => {
         const user = req.body
-        // console.log(user)
         if (user) {
-
-            const bookList = await bookingCollection.findOne({ city: user.city });
-
-            if (user?.city == bookList?.city) {
+            const bookList = await bookingCollection.findOne({ bookName: user.bookName });
+            if (user?.bookName == bookList?.bookName) {
                 res.send({
                     result: 'Match'
                 })
-
             }
             else {
                 const result = await bookingCollection.insertOne(user);
                 res.send(result)
             }
-
         }
-        // console.log(user)
     })
 
-    // get 
+    // get book
     app.get('/booking', async (req, res) => {
         const email = req.query.email;
         const query = { email: email }
@@ -70,7 +64,7 @@ async function run() {
     })
 
 
-    // delete 
+    // delete book
     app.delete('/booking/:id', async (req, res) => {
         const id = req.params.id
         const query = { _id: ObjectId(id) }
@@ -79,7 +73,7 @@ async function run() {
     })
 
 
-    // update 
+    // update book
 
     app.patch('/booking/:id', async (req, res) => {
         const id = req.params.id
