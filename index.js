@@ -1,13 +1,14 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
+var jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000
 const app = express()
 
 // midleWare 
 app.use(cors())
 app.use(express.json())
-
+require('dotenv').config();
 
 // book address api 
 // userName : BookingAddress
@@ -18,6 +19,21 @@ app.use(express.json())
 const uri = "mongodb+srv://BookingAddress:U6gsnVfzy61gX30a@cluster0.w4v9v80.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.send(401).send('unauthorized access')
+    }
+    const token = authHeader.split(' ')[1]
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'forbiden access' })
+        }
+        req.decoded = decoded;
+        next()
+    })
+}
+
 
 async function run() {
     const bookingCollection = client.db('bookingAddress').collection('allBook')
@@ -25,14 +41,30 @@ async function run() {
     // post
     app.post('/booking', async (req, res) => {
         const user = req.body
-        console.log(user)
-        const result = await bookingCollection.insertOne(user)
-        res.send(result)
+        // console.log(user)
+        if (user) {
+
+            const bookList = await bookingCollection.findOne({ city: user.city });
+
+            if (user?.city == bookList?.city) {
+                res.send({
+                    result: 'Match'
+                })
+
+            }
+            else {
+                const result = await bookingCollection.insertOne(user);
+                res.send(result)
+            }
+
+        }
+        // console.log(user)
     })
 
     // get 
     app.get('/booking', async (req, res) => {
-        const query = {}
+        const email = req.query.email;
+        const query = { email: email }
         const result = await bookingCollection.find(query).toArray()
         res.send(result)
     })
@@ -60,6 +92,19 @@ async function run() {
         const query = {}
         const result = await userCollection.find(query).toArray()
         res.send(result)
+    })
+    app.get('/jwt', async (req, res) => {
+        const email = req.query.email;
+        console.log(email)
+        const query = { email: email }
+        const user = await userCollection.findOne(query);
+        console.log(user)
+        if (user) {
+            const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
+            return res.send({ accessToken: token })
+        }
+        console.log(user)
+        res.status(403).send({ accessToken: 'acces token' })
     })
 
     // query by eamil 
