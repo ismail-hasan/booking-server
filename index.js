@@ -11,12 +11,8 @@ app.use(express.json())
 require('dotenv').config();
 
 // book address api 
-// userName : BookingAddress
-// userName : U6gsnVfzy61gX30a
 
-
-
-const uri = "mongodb+srv://BookingAddress:U6gsnVfzy61gX30a@cluster0.w4v9v80.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.w4v9v80.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 function verifyJWT(req, res, next) {
