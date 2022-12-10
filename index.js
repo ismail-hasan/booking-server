@@ -78,8 +78,20 @@ async function run() {
         res.send(result)
     })
 
+
+    // update 
+
+    app.patch('/booking/:id', async (req, res) => {
+        const id = req.params.id
+        const data = req.body;
+        const query = { _id: ObjectId(id) }
+        const options = { upsert: true }
+        const result = await bookingCollection.updateMany(query, { $set: data }, options)
+        res.send(result)
+    })
+
     // user api get///////////////
-    
+
 
     app.post('/alluser', async (req, res) => {
         const user = req.body
